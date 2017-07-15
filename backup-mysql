@@ -9,9 +9,12 @@ DIR=`pwd`
 
 while [ $# -gt 0 ]; do
 	case "$1" in
+	  -d|--debug)
+		set -x
+		;;
 	  -n|--no-archive)
-		  ARCHIVE=0
-		  ;;
+		ARCHIVE=0
+		;;
 	  -l|--location)
 		BACKUPLOCATION=$2
 		;;
