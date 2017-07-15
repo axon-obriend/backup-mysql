@@ -1,0 +1,67 @@
+#!/bin/bash
+set +x
+
+BACKUPLOCATION=~/Backups/mysql
+ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`.tgz
+ARCHIVE=1
+VERBOSE=-v
+DIR=`pwd`
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+	  -n|--no-archive)
+		  ARCHIVE=0
+		  ;;
+	  -l|--location)
+		BACKUPLOCATION=$2
+		;;
+	  -o|--outfile)
+		ARCHIVEFILE=$2
+		;;
+	  -s|--silent)
+		VERBOSE=
+		;;
+	  -h|--help)
+		echo "Usage: backup-mysql [ <options> ]"
+		echo "   Options:"
+		echo "      -s | --silent (do not display progress messages)"
+		echo "      -n | --no-archive (do not create archive of dumped databases)"
+		echo "      -l <path> | --location <path> (path to store dumps and archive)"
+		echo "      -o <filename> | --outfile <filename> (name of archive file)"
+		exit 0
+		;;
+	esac
+	shift
+done
+
+mkdir -p $BACKUPLOCATION
+
+# back up all the mysql databases, into individual files so we can later restore
+# them separately if needed.
+dblist=`mysql --defaults-extra-file=~/.my.cnf -B -N -e "show databases"`
+err=$?
+if [[ err -eq 0 ]]; then
+	for db in $dblist; do
+    		if [[ "$db" != "information_schema" && "$db" != "mysql" && "$db" != "performance_schema" ]]; then
+       			BACKUPFILE=$BACKUPLOCATION/$db.sql
+			if [[ "$VERBOSE" == "-v" ]]; then
+	       			echo "Backing up $db into $BACKUPFILE"
+			fi
+       			/usr/bin/mysqldump --defaults-extra-file=~/.my.cnf --routines --triggers $db > $BACKUPFILE
+			let "err = err + $?"
+    		fi
+	done
+	if [[ err -eq 0 ]]; then
+		if [[ ARCHIVE -eq 1 ]]; then
+			cd $BACKUPLOCATION
+			tar $VERBOSE -czf $BACKUPLOCATION/$ARCHIVEFILE *.sql
+			cd $DIR
+		fi
+	else
+		echo "ERROR: Archive of dump not performed!"
+	fi
+else
+	echo "ERROR: Cannot connect to database server!"
+fi
+exit $err
+
