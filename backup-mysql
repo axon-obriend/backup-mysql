@@ -6,6 +6,7 @@ ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`.tgz
 ARCHIVE=1
 VERBOSE=-v
 DIR=`pwd`
+DB_OPTS="--routines --triggers"
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -50,7 +51,7 @@ if [[ err -eq 0 ]]; then
 			if [[ "$VERBOSE" == "-v" ]]; then
 	       			echo "Backing up $db into $BACKUPFILE"
 			fi
-       			/usr/bin/mysqldump --defaults-extra-file=~/.my.cnf --routines --triggers $db > $BACKUPFILE
+       			/usr/bin/mysqldump --defaults-extra-file=~/.my.cnf $DB_OPTS $db > $BACKUPFILE
 			let "err = err + $?"
     		fi
 	done
