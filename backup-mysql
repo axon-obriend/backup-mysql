@@ -22,6 +22,7 @@ backup_mysql_get_defaults () {
 #####
 
   ERR=0
+  VERBOSE=-v
   BACKUPLOCATION=~/Backups/mysql
   MYSQLDUMP_CMD=`which mysqldump` || backup_mysql_error
   MYSQLDUMP_CNF=~/.my.cnf
@@ -29,9 +30,9 @@ backup_mysql_get_defaults () {
   MYSQLDUMP_INCLUDE=""
   MYSQLDUMP_EXCLUDE="mysql information_schema performance_schema phpmyadmin local_drupal_cms local_drupal_crm"
   ARCHIVE=1
-  ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`
+  ARCHIVELOCATION=$BACKUPLOCATION
+  ARCHIVEFILE=$ARCHIVELOCATION/mysql-`date +"%Y%m%d.%H%M"`
   ARCHIVES_TO_KEEP=4
-  VERBOSE=-v
   DIR=`pwd`
   SED_CMD=`which gsed` || SED_CMD=`which sed` || backup_mysql_error
 
@@ -39,7 +40,7 @@ backup_mysql_get_defaults () {
   [ -f /etc/default/backup-mysql ] && . /etc/default/backup-mysql
   [ -f ~/.config/backup-mysql ]    && . ~/.config/backup-mysql
 
-  MYSQLDUMP_CNF="--defaults-extra-file=$MYSQLDUMP_CNF"
+  [ ! -z "$MYSQLDUMP_CNF" ] && MYSQLDUMP_CNF="--defaults-extra-file=$MYSQLDUMP_CNF"
 
 }
 
@@ -164,7 +165,7 @@ else
     echo "ERROR creating database dumps: No archive created"
   else
     if [[ ARCHIVE -eq 1 ]]; then
-      [[ "$VERBOSE" == "-v" ]] && echo "Creating archive of backups in $BACKUPLOCATION/$ARCHIVEFILE.tgz"
+      [[ "$VERBOSE" == "-v" ]] && echo "Creating archive of backups in $ARCHIVELOCATION/$ARCHIVEFILE.tgz"
       cd $BACKUPLOCATION
       tar $VERBOSE -czf $ARCHIVEFILE.tgz *.sql
       cd $DIR
