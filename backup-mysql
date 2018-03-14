@@ -7,9 +7,9 @@ backup_mysql_error () {
 #####
 
   case "$1" in
-  	  1)
-  		echo -n "Error code $1 "
-  		;;
+    1)
+      echo -n "Error code $1 "
+      ;;
   esac
   echo "exiting"
   exit $1
@@ -45,37 +45,37 @@ backup_mysql_parse_opts () {
 #####
 
   while [ $# -gt 0 ]; do
-  	case "$1" in
-  	  -d|--debug)
-  		set -x
-  		;;
-  	  -n|--no-archive)
-  		ARCHIVE=0
-  		;;
-  	  -l|--location)
-  		BACKUPLOCATION=$2
-  		;;
-  	  -o|--outfile)
-  		ARCHIVEFILE=$2
-  		;;
-  	  -k|--keep)
-  		ARCHIVES_TO_KEEP=$2
-  		;;
-  	  -s|--silent)
-  		VERBOSE=
-  		;;
-  	  -h|--help)
-  		echo "Usage: backup-mysql [ <options> ]"
-  		echo "   Options:"
-  		echo "      -s | --silent (do not display progress messages)"
-  		echo "      -n | --no-archive (do not create archive of dumped databases)"
-  		echo "      -l <path> | --location <path> (path to store dumps and archive)"
-      echo "      -k # | --keep # (number of archives to keep; delete older)"
-  		echo "      -o <filename> | --outfile <filename> (name of archive file)"
-  		exit 0
-  		;;
-  	esac
-  	shift
+    case "$1" in
+      -d|--debug)
+        set -x
+        ;;
+      -n|--no-archive)
+        ARCHIVE=0
+        ;;
+      -l|--location)
+        BACKUPLOCATION=$2
+        ;;
+      -o|--outfile)
+         ARCHIVEFILE=$2
+        ;;
+      -k|--keep)
+        ARCHIVES_TO_KEEP=$2
+        ;;
+      -s|--silent)
+        VERBOSE=
+        ;;
+      -h|--help)
+        echo "Usage: backup-mysql [ <options> ]"
+        echo "   Options:"
+        echo "      -s | --silent (do not display progress messages)"
+        echo "      -n | --no-archive (do not create archive of dumped databases)"
+        echo "      -l <path> | --location <path> (path to store dumps and archive)"
+        echo "      -k # | --keep # (number of archives to keep; delete older)"
+        echo "      -o <filename> | --outfile <filename> (name of archive file)"
+        exit 0
+        ;;
+    esac
+    shift
   done
 }
 
@@ -96,12 +96,12 @@ backup_mysql_get_list () {
 backup_mysql_do_backup () {
 #####
 
-	for DB in $MYSQLDUMP_INCLUDE; do
+  for DB in $MYSQLDUMP_INCLUDE; do
     BACKUPFILE=$BACKUPLOCATION/$DB.sql
     [[ "$VERBOSE" == "-v" ]] && echo "Backing up $DB into $BACKUPFILE"
     $MYSQLDUMP_CMD $MYSQLDUMP_OPTS $DB > $BACKUPFILE
     let "ERR = ERR + $?"
-	done
+  done
 
 }
 
@@ -157,8 +157,8 @@ else
 
   backup_mysql_do_backup
 
-	if [[ ERR -ne 0 ]]; then
-	  echo "ERROR creating database dumps: No archive created"
+  if [[ ERR -ne 0 ]]; then
+    echo "ERROR creating database dumps: No archive created"
   else
     if [[ ARCHIVE -eq 1 ]]; then
       [[ "$VERBOSE" == "-v" ]] && echo "Creating archive of backups in $BACKUPLOCATION/$ARCHIVEFILE.tgz"
@@ -166,7 +166,7 @@ else
       tar $VERBOSE -czf $ARCHIVEFILE.tgz *.sql
       cd $DIR
     fi
-	fi
+  fi
 
 fi
 
