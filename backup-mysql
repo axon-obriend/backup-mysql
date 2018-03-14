@@ -24,7 +24,8 @@ backup_mysql_get_defaults () {
   ERR=0
   BACKUPLOCATION=~/Backups/mysql
   MYSQLDUMP_CMD=`which mysqldump` || backup_mysql_error
-  MYSQLDUMP_OPTS="--defaults-extra-file=~/.my.cnf --routines --triggers"
+  MYSQLDUMP_CNF=~/.my.cnf
+  MYSQLDUMP_OPTS="--routines --triggers"
   MYSQLDUMP_INCLUDE=""
   MYSQLDUMP_EXCLUDE="mysql information_schema performance_schema phpmyadmin local_drupal_cms local_drupal_crm"
   ARCHIVE=1
@@ -37,6 +38,8 @@ backup_mysql_get_defaults () {
   # Read a system-wide or per-user config if one exists
   [ -f /etc/default/backup-mysql ] && . /etc/default/backup-mysql
   [ -f ~/.config/backup-mysql ]    && . ~/.config/backup-mysql
+
+  MYSQLDUMP_CNF="--defaults-extra-file=$MYSQLDUMP_CNF"
 
 }
 
@@ -84,7 +87,7 @@ backup_mysql_parse_opts () {
 backup_mysql_get_list () {
 #####
 
-  [[ -z $MYSQLDUMP_INCLUDE ]] && MYSQLDUMP_INCLUDE=`mysql --defaults-extra-file=~/.my.cnf -B -N -e "show databases"`
+  [[ -z $MYSQLDUMP_INCLUDE ]] && MYSQLDUMP_INCLUDE=`mysql $MYSQLDUMP_CNF -B -N -e "show databases"`
   for X in $MYSQLDUMP_EXCLUDE; do
     MYSQLDUMP_INCLUDE=`echo $MYSQLDUMP_INCLUDE | $SED_CMD "s/\b$X\b//g"`
   done
@@ -99,7 +102,7 @@ backup_mysql_do_backup () {
   for DB in $MYSQLDUMP_INCLUDE; do
     BACKUPFILE=$BACKUPLOCATION/$DB.sql
     [[ "$VERBOSE" == "-v" ]] && echo "Backing up $DB into $BACKUPFILE"
-    $MYSQLDUMP_CMD $MYSQLDUMP_OPTS $DB > $BACKUPFILE
+    $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > $BACKUPFILE
     let "ERR = ERR + $?"
   done
 
