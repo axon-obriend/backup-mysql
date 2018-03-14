@@ -1,0 +1,24 @@
+# /etc/default/backup-mysql - System-wide defaults file
+
+# Location for archives and backups
+BACKUPLOCATION=/var/lib/automysqlbackup/snapshot
+ARCHIVELOCATION=/var/lib/automysqlbackup/latest
+
+# mysqldump settings
+MYSQLDUMP_CMD=/usr/bin/mysqldump
+MYSQLDUMP_CNF=/etc/mysql/debian.cnf
+MYSQLDUMP_OPTS="--routines --triggers"
+MYSQLDUMP_INCLUDE=""
+MYSQLDUMP_EXCLUDE="information_schema mysql performance_schema phpmyadmin sys"
+
+# Create archive of backups?
+ARCHIVE=1
+
+# Name of arcive
+ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`
+
+# Prune to this many archives matching $ARCHIVEFILE's pattern (0=Don't prune)
+ARCHIVES_TO_KEEP=7
+
+# Provide progress messages
+VERBOSE=-v
