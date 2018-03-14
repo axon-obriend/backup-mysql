@@ -29,11 +29,14 @@ backup_mysql_get_defaults () {
   MYSQLDUMP_EXCLUDE="mysql information_schema performance_schema phpmyadmin local_drupal_cms local_drupal_crm"
   ARCHIVE=1
   ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`
+  ARCHIVES_TO_KEEP=4
   VERBOSE=-v
   DIR=`pwd`
   SED_CMD=`which gsed` || SED_CMD=`which sed` || backup_mysql_error
 
+  # Read a system-wide or per-user config if one exists
   [ -f /etc/default/backup-mysql ] && . /etc/default/backup-mysql
+  [ -f ~/.config/backup-mysql ]    && . ~/.config/backup-mysql
 
 }
 
@@ -54,6 +57,9 @@ backup_mysql_parse_opts () {
   		;;
   	  -o|--outfile)
   		ARCHIVEFILE=$2
+  		;;
+  	  -k|--keep)
+  		ARCHIVES_TO_KEEP=$2
   		;;
   	  -s|--silent)
   		VERBOSE=
@@ -99,6 +105,40 @@ backup_mysql_do_backup () {
 }
 
 
+#####
+backup_mysql_cleanup () {
+#####
+
+  [[ $ARCHIVES_TO_KEEP -eq "0" ]] && return 0
+
+  PATTERN=${ARCHIVEFILE//[0-9]/?}.tgz
+
+  cd $BACKUPLOCATION
+  FILES=(`ls -t $PATTERN`)  # Files matching pattern, oldest to newest
+  if [ $? -eq 0 ]; then
+    # We found some
+
+    FILES=(${FILES[@]})
+    for F in ${FILES[@]:$ARCHIVES_TO_KEEP}; do
+      [ -w "${F}" ] && rm "${F}"
+    done
+
+  else
+
+    echo "cleanup_files: No files match pattern"
+    exit 1
+
+  fi
+
+  cd $DIR
+
+}
+
+
+#####
+# The juicy bits
+#####
+
 backup_mysql_get_defaults
 backup_mysql_parse_opts
 backup_mysql_get_list
@@ -128,3 +168,5 @@ else
 	fi
 
 fi
+
+backup_mysql_cleanup
