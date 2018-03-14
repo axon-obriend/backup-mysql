@@ -166,6 +166,7 @@ else
   else
     if [[ ARCHIVE -eq 1 ]]; then
       [[ "$VERBOSE" == "-v" ]] && echo "Creating archive of backups in $ARCHIVELOCATION/$ARCHIVEFILE.tgz"
+      mkdir -p $ARCHIVELOCATION
       cd $BACKUPLOCATION
       tar $VERBOSE -czf $ARCHIVEFILE.tgz *.sql
       cd $DIR
