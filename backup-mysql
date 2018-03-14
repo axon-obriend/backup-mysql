@@ -70,6 +70,7 @@ backup_mysql_parse_opts () {
   		echo "      -s | --silent (do not display progress messages)"
   		echo "      -n | --no-archive (do not create archive of dumped databases)"
   		echo "      -l <path> | --location <path> (path to store dumps and archive)"
+      echo "      -k # | --keep # (number of archives to keep; delete older)"
   		echo "      -o <filename> | --outfile <filename> (name of archive file)"
   		exit 0
   		;;
