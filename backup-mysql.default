@@ -22,4 +22,4 @@ ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`
 ARCHIVES_TO_KEEP=7
 
 # Provide progress messages
-VERBOSE=-v
+VERBOSE=1
