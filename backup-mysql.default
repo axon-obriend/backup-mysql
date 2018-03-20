@@ -14,7 +14,7 @@ MYSQLDUMP_EXCLUDE="information_schema mysql performance_schema phpmyadmin sys"
 # Create archive of backups?
 ARCHIVE=1
 
-# Name of arcive
+# Name of archive
 ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`
 
 # Prune to this many archives matching $ARCHIVEFILE's pattern (0=Don't prune)
