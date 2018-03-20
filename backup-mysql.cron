@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+# minute hour day-of-month(0-31) month(1-12) day-of-week(1=Monday)
+
+34 0 * * * root test -x /usr/local/bin/backup-mysql && /usr/local/bin/backup-mysql

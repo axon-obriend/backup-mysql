@@ -22,8 +22,10 @@ backup_mysql_get_defaults () {
 #####
 
   ERR=0
+  DUMPDATE=`date +"%Y%m%d.%H%M"`
   VERBOSE=-v
   BACKUPLOCATION=~/Backups/mysql
+  BACKUPFILE='$DB-$DUMPDATE'
   MYSQLDUMP_CMD=`which mysqldump` || backup_mysql_error
   MYSQLDUMP_CNF=~/.my.cnf
   MYSQLDUMP_OPTS="--routines --triggers"
@@ -31,7 +33,7 @@ backup_mysql_get_defaults () {
   MYSQLDUMP_EXCLUDE="mysql information_schema performance_schema phpmyadmin local_drupal_cms local_drupal_crm"
   ARCHIVE=1
   ARCHIVELOCATION=$BACKUPLOCATION
-  ARCHIVEFILE=mysql-`date +"%Y%m%d.%H%M"`
+  ARCHIVEFILE=mysql-$DUMPDATE
   ARCHIVES_TO_KEEP=4
   DIR=`pwd`
   SED_CMD=`which gsed` || SED_CMD=`which sed` || backup_mysql_error
@@ -101,9 +103,9 @@ backup_mysql_do_backup () {
 #####
 
   for DB in $MYSQLDUMP_INCLUDE; do
-    BACKUPFILE=$BACKUPLOCATION/$DB.sql
-    [[ "$VERBOSE" == "-v" ]] && echo "Backing up $DB into $BACKUPFILE"
-    $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > $BACKUPFILE
+    BF=$(eval echo "$BACKUPFILE")
+    [[ "$VERBOSE" == "-v" ]] && echo "Backing up $DB into $BACKUPLOCATION/$BF.sql"
+    $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > "$BACKUPLOCATION/$BF.sql"
     let "ERR = ERR + $?"
   done
 
@@ -169,10 +171,10 @@ else
       mkdir -p $ARCHIVELOCATION
       cd $BACKUPLOCATION
       tar $VERBOSE -czf $ARCHIVELOCATION/$ARCHIVEFILE.tgz *.sql
+      backup_mysql_cleanup
       cd $DIR
     fi
   fi
 
 fi
 
-backup_mysql_cleanup
