@@ -1,4 +1,5 @@
 # /etc/default/backup-mysql - System-wide defaults file
+# Can also be used for per-user defaults at ~/.config/backup-mysql
 
 # Location for archives and backups
 BACKUPLOCATION=/var/lib/automysqlbackup/snapshot
