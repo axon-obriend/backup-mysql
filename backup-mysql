@@ -83,6 +83,7 @@ backup_mysql_parse_opts () {
     esac
     shift
   done
+  [[ "$VERBOSE" ]] && VERBOSE="-v"
 }
 
 
@@ -104,7 +105,7 @@ backup_mysql_do_backup () {
 
   for DB in $MYSQLDUMP_INCLUDE; do
     BF=$(eval echo "$BACKUPFILE")
-    [[ "$VERBOSE" == "-v" ]] && echo "Backing up $DB into $BACKUPLOCATION/$BF.sql"
+    [[ "$VERBOSE" ]] && echo "Backing up $DB into $BACKUPLOCATION/$BF.sql"
     $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > "$BACKUPLOCATION/$BF.sql"
     let "ERR = ERR + $?"
   done
@@ -167,7 +168,7 @@ else
     echo "ERROR creating database dumps: No archive created"
   else
     if [[ ARCHIVE -eq 1 ]]; then
-      [[ "$VERBOSE" == "-v" ]] && echo "Creating archive of backups in $ARCHIVELOCATION/$ARCHIVEFILE.tgz"
+      [[ "$VERBOSE" ]] && echo "Creating archive of backups in $ARCHIVELOCATION/$ARCHIVEFILE.tgz"
       mkdir -p $ARCHIVELOCATION
       cd $BACKUPLOCATION
       tar $VERBOSE -czf $ARCHIVELOCATION/$ARCHIVEFILE.tgz *.sql
