@@ -25,7 +25,7 @@ backup_mysql_get_defaults () {
   DUMPDATE=`date +"%Y%m%d.%H%M"`
   VERBOSE=-v
   BACKUPLOCATION=~/Backups/mysql
-  BACKUPFILE='$DB-$DUMPDATE'
+  BACKUPFILE='$DB-$DUMPDATE.sql'
   MYSQLDUMP_CMD=`which mysqldump` || backup_mysql_error
   MYSQLDUMP_CNF=~/.my.cnf
   MYSQLDUMP_OPTS="--routines --triggers"
@@ -33,7 +33,7 @@ backup_mysql_get_defaults () {
   MYSQLDUMP_EXCLUDE="mysql information_schema performance_schema phpmyadmin local_drupal_cms local_drupal_crm"
   ARCHIVE=1
   ARCHIVELOCATION=$BACKUPLOCATION
-  ARCHIVEFILE=mysql-$DUMPDATE
+  ARCHIVEFILE=mysql-$DUMPDATE.tgz
   ARCHIVES_TO_KEEP=4
   DIR=`pwd`
   SED_CMD=`which gsed` || SED_CMD=`which sed` || backup_mysql_error
@@ -105,9 +105,10 @@ backup_mysql_do_backup () {
 
   for DB in $MYSQLDUMP_INCLUDE; do
     BF=$(eval echo "$BACKUPFILE")
-    [[ "$VERBOSE" ]] && echo "Backing up $DB into $BACKUPLOCATION/$BF.sql"
-    $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > "$BACKUPLOCATION/$BF.sql"
+    [[ "$VERBOSE" ]] && echo "Backing up $DB into $BACKUPLOCATION/$BF"
+    $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > "$BACKUPLOCATION/$BF"
     let "ERR = ERR + $?"
+    [[ $ERR ]] && backup_mysql_cleanup $BACKUPLOCATION/$BF
   done
 
 }
@@ -116,12 +117,16 @@ backup_mysql_do_backup () {
 #####
 backup_mysql_cleanup () {
 #####
+  X=${1:-$ARCHIVELOCATION/$ARCHIVEFILE}
+  D=$( dirname $X )
+  N=$( basename $X )
 
+  [[ -d "$D" ]] || { echo "backup_mysql_cleanup: Directory does not exist" ; return 1 ; }
   [[ $ARCHIVES_TO_KEEP -eq "0" ]] && return 0
 
-  PATTERN=${ARCHIVEFILE//[0-9]/?}.tgz
+  PATTERN=${N//[0-9]/?}
 
-  cd $ARCHIVELOCATION
+  pushd $D > /dev/null
   FILES=(`ls -t $PATTERN`)  # Files matching pattern, oldest to newest
   if [ $? -eq 0 ]; then
     # We found some
@@ -133,12 +138,12 @@ backup_mysql_cleanup () {
 
   else
 
-    echo "cleanup_files: No files match pattern"
+    echo "backup_mysql_cleanup: No files match pattern"
     exit 1
 
   fi
 
-  cd $DIR
+  popd > /dev/null
 
 }
 
@@ -170,10 +175,10 @@ else
     if [[ ARCHIVE -eq 1 ]]; then
       [[ "$VERBOSE" ]] && echo "Creating archive of backups in $ARCHIVELOCATION/$ARCHIVEFILE.tgz"
       mkdir -p $ARCHIVELOCATION
-      cd $BACKUPLOCATION
-      tar $VERBOSE -czf $ARCHIVELOCATION/$ARCHIVEFILE.tgz *.sql
-      backup_mysql_cleanup
-      cd $DIR
+      pushd $BACKUPLOCATION > /dev/null
+      tar $VERBOSE -czf $ARCHIVELOCATION/$ARCHIVEFILE *.${BACKUPFILE##*.}
+      backup_mysql_cleanup $ARCHIVELOCATION/$ARCHIVEFILE
+      popd > /dev/null
     fi
   fi
 
