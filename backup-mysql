@@ -95,6 +95,10 @@ backup_mysql_get_list () {
   for X in $MYSQLDUMP_EXCLUDE; do
     MYSQLDUMP_INCLUDE=`echo $MYSQLDUMP_INCLUDE | $SED_CMD "s/\b$X\b//g"`
   done
+  if [ ! $MYSQLDUMP_INCLUDE ]; then
+    # Nothing to do
+    backup_mysql_error 0
+  fi
 
 }
 
