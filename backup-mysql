@@ -91,8 +91,7 @@ backup_mysql_parse_opts () {
 backup_mysql_get_list () {
 #####
 
-  [[ -z $MYSQLDUMP_INCLUDE ]] && MYSQLDUMP_INCLUDE=`echo $(mysql $MYSQLDUMP_CNF -B -N -e "show databases" )`
-  MYSQLDUMP_INCLUDE="$MYSQLDUMP_INCLUDE %%END%%"
+  [[ -z $MYSQLDUMP_INCLUDE ]] && MYSQLDUMP_INCLUDE="`echo $(mysql $MYSQLDUMP_CNF -B -N -e 'show databases' )` %%END%%"
 
   INCLUDE_LIST=''
   while [ "$MYSQLDUMP_INCLUDE" != "%%END%%" ]; do
