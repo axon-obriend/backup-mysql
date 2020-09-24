@@ -24,7 +24,7 @@ backup_mysql_get_defaults () {
   ERR=0
   DUMPDATE=`date +"%Y%m%d.%H%M"`
   VERBOSE=-v
-  BACKUPLOCATION=~/Backups/mysql
+  BACKUPLOCATION=~/Backups/mysql/latest
   BACKUPFILE='$DB-$DUMPDATE.sql'
   MYSQLDUMP_CMD=`which mysqldump` || backup_mysql_error
   MYSQLDUMP_CNF=~/.my.cnf
@@ -32,7 +32,7 @@ backup_mysql_get_defaults () {
   MYSQLDUMP_INCLUDE=""
   MYSQLDUMP_EXCLUDE="mysql information_schema performance_schema phpmyadmin local_drupal_cms local_drupal_crm"
   ARCHIVE=1
-  ARCHIVELOCATION=$BACKUPLOCATION
+  ARCHIVELOCATION=${BACKUPLOCATION%/latest}
   ARCHIVEFILE=mysql-$DUMPDATE.tgz
   ARCHIVES_TO_KEEP=4
   DIR=`pwd`
@@ -100,7 +100,7 @@ backup_mysql_get_list () {
     for X in $MYSQLDUMP_EXCLUDE; do
       [[ ! -z $DB ]] && [[ $DB == $X ]] && DB=''
     done
-    [[ ! -z $DB]] && INCLUDE_LIST="$INCLUDE_LIST $DB"
+    [[ ! -z $DB ]] && INCLUDE_LIST="$INCLUDE_LIST $DB"
     MYSQLDUMP_INCLUDE=${MYSQLDUMP_INCLUDE#* }
   done
 
@@ -116,7 +116,7 @@ backup_mysql_get_list () {
 backup_mysql_do_backup () {
 #####
 
-  for DB in $MYSQLDUMP_INCLUDE; do
+  for DB in $INCLUDE_LIST; do
     BF=$(eval echo "$BACKUPFILE")
     [[ "$VERBOSE" ]] && echo "Backing up $DB into $BACKUPLOCATION/$BF"
     $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > "$BACKUPLOCATION/$BF"
