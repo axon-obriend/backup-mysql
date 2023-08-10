@@ -8,10 +8,9 @@ backup_mysql_error () {
 
   case "$1" in
     1)
-      echo -n "Error code $1 "
+      do_log error "Error code $1. Exiting."
       ;;
   esac
-  echo "exiting"
   exit $1
 
 }
@@ -87,6 +86,31 @@ backup_mysql_parse_opts () {
 }
 
 
+### do_log
+### Outputs a log message
+### Usage:
+###   do_log error|warning|info "A message"
+###
+do_log() {
+  LEVEL=$1
+  shift
+  MSG="$MYSELF $*"
+  case $LEVEL in
+    err|error)
+      MSG="*ERROR* $MSG"
+      ;;
+    warn|warning)
+      MSG="WARNING: $MSG"
+      ;;
+    info|notice)
+      ;;
+  esac
+  echo "`date` $MSG"
+  test -x /bin/logger && /bin/logger $LOGGER_ID --priority syslog.notice "$MSG"
+
+}
+
+
 #####
 backup_mysql_get_list () {
 #####
@@ -117,7 +141,7 @@ backup_mysql_do_backup () {
 
   for DB in $INCLUDE_LIST; do
     BF=$(eval echo "$BACKUPFILE")
-    [[ "$VERBOSE" ]] && echo "Backing up $DB into $BACKUPLOCATION/$BF"
+    [[ "$VERBOSE" ]] && do_log info "Backing up $DB into $BACKUPLOCATION/$BF"
     $MYSQLDUMP_CMD $MYSQLDUMP_CNF $MYSQLDUMP_OPTS $DB > "$BACKUPLOCATION/$BF"
     let "ERR = ERR + $?"
     [[ $ERR ]] && backup_mysql_cleanup $BACKUPLOCATION/$BF
@@ -133,7 +157,7 @@ backup_mysql_cleanup () {
   D=$( dirname $X )
   N=$( basename $X )
 
-  [[ -d "$D" ]] || { echo "backup_mysql_cleanup: Directory does not exist" ; return 1 ; }
+  [[ -d "$D" ]] || { do_log error "backup_mysql_cleanup: Directory does not exist" ; return 1 ; }
   [[ $ARCHIVES_TO_KEEP -eq "0" ]] && return 0
 
   PATTERN=${N//[0-9]/?}
@@ -150,7 +174,7 @@ backup_mysql_cleanup () {
 
   else
 
-    echo "backup_mysql_cleanup: No files match pattern"
+    do_log error "backup_mysql_cleanup: No files match pattern"
     exit 1
 
   fi
@@ -174,7 +198,7 @@ mkdir -p $BACKUPLOCATION
 # them separately if needed
 if [[ ERR -ne 0 ]]; then
 
-  echo "Something went wrong"
+  do_log error "Something went wrong"
   exit $ERR
 
 else
@@ -182,10 +206,10 @@ else
   backup_mysql_do_backup
 
   if [[ ERR -ne 0 ]]; then
-    echo "ERROR creating database dumps: No archive created"
+    do_log error "creating database dumps: No archive created"
   else
     if [[ ARCHIVE -eq 1 ]]; then
-      [[ "$VERBOSE" ]] && echo "Creating archive of backups in $ARCHIVELOCATION/$ARCHIVEFILE.tgz"
+      [[ "$VERBOSE" ]] && do_log info "Creating archive of backups in $ARCHIVELOCATION/$ARCHIVEFILE.tgz"
       mkdir -p $ARCHIVELOCATION
       pushd $BACKUPLOCATION > /dev/null
       tar $VERBOSE -czf $ARCHIVELOCATION/$ARCHIVEFILE *.${BACKUPFILE##*.}
